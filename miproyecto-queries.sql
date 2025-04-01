@@ -376,3 +376,22 @@ where t.Precio =
    (select max(Precio)
    from Tratamiento);
 select * from Vista_Tratamiento_Mas_Caro;
+
+
+-- Especialidad con más citas canceladas.
+SELECT e.Nombre_Especialidad, COUNT(*) AS TotalCanceladas
+FROM Especialidad e
+   INNER JOIN Empleados e2 ON e.idEspecialidad = e2.Especialidad_idEspecialidad
+   INNER JOIN Empleados_has_Cita ehc ON e2.idEmpleados = ehc.Empleados_idEmpleados
+   INNER JOIN Cita c ON ehc.Cita_idCita = c.idCita
+WHERE c.Estado_cita = 'Cancelada'
+GROUP BY e.idEspecialidad, e.Nombre_Especialidad
+HAVING COUNT(*) >= ALL (
+       SELECT COUNT(*)
+       FROM Cita c2
+           INNER JOIN Empleados_has_Cita ehc2 ON c2.idCita = ehc2.Cita_idCita
+           INNER JOIN Empleados e3 ON ehc2.Empleados_idEmpleados = e3.idEmpleados
+           INNER JOIN Especialidad e4 ON e3.Especialidad_idEspecialidad = e4.idEspecialidad
+       WHERE c2.Estado_cita = 'Cancelada'
+       GROUP BY e4.idEspecialidad
+);
